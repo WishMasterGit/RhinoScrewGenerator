@@ -31,12 +31,19 @@ namespace ScrewThread
         {
 
             (double diameter, double pitch, double length, Result result) = InitCommandParametrs.Init();
+
+            if(result == Result.Failure)
+            {
+                RhinoApp.WriteLine("incorrect parameters");
+                return result;
+            }
+
+            var profileSettings = new ProfileSettings(pitch, diameter, length, doc.ModelAbsoluteTolerance);
             var tolerance = doc.ModelAbsoluteTolerance;
 
-            var profile = new Profile(pitch, diameter, length, tolerance);
-            var screwSurface = profile.CreateMaleSurface();
-            var cuttingPlanes = profile.CuttingPlanes();
-
+            var profile = new Profile();
+            var screwSurface = profile.CreateMaleSurface(profileSettings);
+            var cuttingPlanes = profile.CuttingPlanes(profileSettings);
 
             var surfaces = new List<Brep>();
             surfaces.AddRange(screwSurface);
