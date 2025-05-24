@@ -10,6 +10,12 @@ namespace ScrewThread
         Right,
         Both
     }
+
+    internal enum ProfileType
+    {
+        Male,
+        Female
+    }
     /// <summary>
     /// Represents the geometric and thread parameters for a screw thread profile.
     /// Provides calculated properties for key points and dimensions based on ISO metric thread standards.
@@ -23,14 +29,17 @@ namespace ScrewThread
         /// <param name="diameter">The major diameter of the thread.</param>
         /// <param name="length">The total length of the thread.</param>
         /// <param name="tolerance">The modeling tolerance.</param>
-        public ProfileSettings(double pitch, double diameter, double length, double tolerance, Chamfer chamferOption)
+        public ProfileSettings(double pitch, double diameter, double length, double tolerance, Chamfer chamferOption, ProfileType profileType)
         {
             Pitch = pitch;
             Diameter = diameter;
             Length = length;
             Tolerance = tolerance;
             ChamferOption = chamferOption;
+            ProfileType = profileType;
         }
+
+        public ProfileType ProfileType { get; }
 
         /// <summary>
         /// Gets the thread pitch (distance between threads).
@@ -115,7 +124,7 @@ namespace ScrewThread
         /// <summary>
         /// Gets the second profile point.
         /// </summary>
-        public Point3d P2 => new Point3d(Pitch / 4, 0, F2);
+        public Point3d P2 => new Point3d(Pitch / 4, 0, F1);
 
         /// <summary>
         /// Gets the third profile point (crest of thread).

@@ -21,7 +21,7 @@ namespace ScrewThread
         }
         public ArcCurve ArcMale(Vector3d translate, ProfileSettings data)
         {
-            var arc = new ArcCurve(new Arc(data.P1, data.P1h, data.P2));
+            var arc = new ArcCurve(new Arc(data.P1, data.P1e, data.P2));
             arc.Translate(translate);
             return arc;
         }
@@ -36,6 +36,39 @@ namespace ScrewThread
             return polyline;
         }
 
+        public ArcCurve ArcFemale(ProfileSettings data)
+        {
+            return this.ArcFemale(Vector3d.Zero, data);
+        }
+        public ArcCurve ArcFemale(Vector3d translate, ProfileSettings data)
+        {
+            var arc = new ArcCurve(new Arc(data.P3, data.P3e, data.P4));
+            arc.Translate(translate);
+            return arc;
+        }
+        public PolylineCurve PolylineFemale(ProfileSettings data)
+        {
+            return this.PolylineMale(Vector3d.Zero, data);
+        }
+
+        public PolylineCurve PolylineFemale(Vector3d translate, ProfileSettings data)
+        {
+            var polyline = new Polyline(new List<Point3d> { data.P1, data.P2, data.P3 }).ToPolylineCurve();
+            polyline.Translate(translate);
+            return polyline;
+        }
+        public PolylineCurve PolylineFemaleB(ProfileSettings data)
+        {
+            return this.PolylineMale(Vector3d.Zero, data);
+        }
+        public PolylineCurve PolylineFemaleB(Vector3d translate, ProfileSettings data)
+        {
+            var polyline = new Polyline(new List<Point3d> { data.P4, data.P5 }).ToPolylineCurve();
+            polyline.Translate(translate);
+            return polyline;
+        }
+
+
         public Curve HelixCurve(ProfileSettings data)
         {
             Point3d axisStart = new Point3d(0, 0, 0);
@@ -46,22 +79,35 @@ namespace ScrewThread
         }
         public Curve CreateProfileCurve(ProfileSettings data)
         {
-            var maleProfile = new PolyCurve();
+            var profile = new PolyCurve();
             var stepVector = new Vector3d(0, 0, 0);
-            var arcMale = ArcMale(stepVector, data);
-            var pLineMale = PolylineMale(stepVector, data);
-            maleProfile.Append(arcMale);
-            maleProfile.Append(pLineMale);
-            return maleProfile;
+            switch (data.ProfileType)
+            {
+                case ProfileType.Male:
+                    var arcM = ArcMale(stepVector, data);
+                    var curveM = PolylineMale(stepVector, data);
+                    profile.Append(arcM);
+                    profile.Append(curveM);
+                    return profile;
+                case ProfileType.Female:
+                    var arcF = ArcFemale(stepVector, data);
+                    var curveF1= PolylineFemale(stepVector, data);
+                    var curveF2 = PolylineFemaleB(stepVector, data);
+                    profile.Append(curveF1);
+                    profile.Append(arcF);
+                    profile.Append(curveF2);
+                    return profile;
+            }
+            return profile;
 
         }
 
-        public Brep CreateMaleSurface(ProfileSettings data)
+        public Brep CreateProfileBrep(ProfileSettings data)
         {
-            var maleProfile = CreateProfileCurve(data);
+            var profileCurve = CreateProfileCurve(data);
             var helix = HelixCurve(data);
             Line revolvingAxis = new Line(new Point3d(0, 0, 0), Vector3d.XAxis, 1);
-            var threadsSurface = NurbsSurface.CreateRailRevolvedSurface(maleProfile, helix, revolvingAxis, false);
+            var threadsSurface = NurbsSurface.CreateRailRevolvedSurface(profileCurve, helix, revolvingAxis, false);
             Brep brep = threadsSurface.ToBrep();
             brep.Faces.SplitKinkyFaces();
             var screw = Tools.ExplodeAndMerge(brep, data.Tolerance);
@@ -72,7 +118,8 @@ namespace ScrewThread
             var breps = Brep.CreateSolid(surfaces, data.Tolerance);
             var result = breps[0];
             result.Translate(Vector3d.XAxis * -data.Pitch);
-            if(data.ChamferOption != Chamfer.None)
+
+            if (data.ChamferOption != Chamfer.None && data.ProfileType != ProfileType.Male)
             {
                 result = ChamferProfile(result, data);
             }
@@ -101,9 +148,9 @@ namespace ScrewThread
             var polyline = new Polyline(new List<Point3d> { data.Pc1, line.PointAtLength(length), line2.PointAtLength(length), data.Pc1 });
             var chamferCutter = RevSurface.Create(polyline, new Line(Point3d.Origin, Vector3d.XAxis * length), 0, 2 * Math.PI).ToBrep();
             var startChamfer = Brep.CreateBooleanIntersection(chamferCutter, screwProfile, data.Tolerance);
-            if(data.ChamferOption == Chamfer.Left) return startChamfer[0];
-            chamferCutter.Translate(Vector3d.XAxis * (data.Height*(data.TurnCount-1)-data.Pitch));
-            if(data.ChamferOption == Chamfer.Right) return Brep.CreateBooleanIntersection(screwProfile, chamferCutter, data.Tolerance)[0];
+            if (data.ChamferOption == Chamfer.Left) return startChamfer[0];
+            chamferCutter.Translate(Vector3d.XAxis * (data.Height * (data.TurnCount - 1) - data.Pitch));
+            if (data.ChamferOption == Chamfer.Right) return Brep.CreateBooleanIntersection(screwProfile, chamferCutter, data.Tolerance)[0];
             var endChamfer = Brep.CreateBooleanIntersection(startChamfer[0], chamferCutter, data.Tolerance);
             return endChamfer[0];
         }
