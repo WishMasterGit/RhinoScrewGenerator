@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Rhino;
+﻿using Rhino;
 using Rhino.Commands;
-using Rhino.DocObjects;
 using Rhino.Geometry;
-using Rhino.Geometry.Collections;
 using Rhino.Input;
 using Rhino.Input.Custom;
+using Rhino.UI;
+using System.Collections.Generic;
 
 namespace ScrewThread
 {
@@ -28,30 +25,63 @@ namespace ScrewThread
 
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
+
         {
 
-            (double diameter, double pitch, double length, Result result) = InitCommandParametrs.Init();
 
-            if(result == Result.Failure)
+            // For this example we will use a GetPoint class, but all of the custom
+            // "Get" classes support command line options.
+            GetString gp = new GetString();
+            gp.SetDefaultString("Screw");
+            gp.SetCommandPrompt("Screw parameters");
+            // set up the options
+            var pitch = new OptionDouble(6);
+            var diameter = new OptionDouble(60);
+            var length = new OptionDouble(100);
+            var chamfer = Chamfer.None;
+            var opIndex = gp.AddOptionEnumList("Chamfer", Chamfer.None, new Chamfer[] { Chamfer.None, Chamfer.Left, Chamfer.Right, Chamfer.Both });
+            gp.AddOptionDouble("Pitch", ref pitch);
+            gp.AddOptionDouble("Diameter", ref diameter);
+            gp.AddOptionDouble("Length", ref length);
+
+            while (true)
             {
-                RhinoApp.WriteLine("incorrect parameters");
-                return result;
+                // perform the get operation. This will prompt the user to input a point, but also
+                // allow for command line options defined above
+                Rhino.Input.GetResult get_rc = gp.Get();
+                if (gp.CommandResult() != Rhino.Commands.Result.Success)
+                    return gp.CommandResult();
+
+                if (get_rc == Rhino.Input.GetResult.String)
+                {
+                    var tolerance = doc.ModelAbsoluteTolerance;
+                    var profileSettings = new ProfileSettings(pitch.CurrentValue, diameter.CurrentValue, length.CurrentValue, tolerance, chamfer);
+                    var profile = new Profile();
+                    var screwSurface = profile.CreateMaleSurface(profileSettings);
+                    doc.Objects.AddBrep(screwSurface);
+                    doc.Views.Redraw();
+                }
+                else if (get_rc == GetResult.Option)
+                {
+                    if(gp.OptionIndex() == opIndex) chamfer = gp.GetSelectedEnumValue<Chamfer>();
+                    continue;
+                }
+                break;
             }
+            //return Rhino.Commands.Result.Success;
+            //var units = Dialogs.ShowListBox("Screw Thread", "Select the type of screw thread", new[] { "Metric", "Imperial" });
 
-            var profileSettings = new ProfileSettings(pitch, diameter, length, doc.ModelAbsoluteTolerance);
-            var tolerance = doc.ModelAbsoluteTolerance;
+            //(Chamfer chamfer, double diameter, double pitch, double length, Result result) = InitCommandParametrs.Init();
 
-            var profile = new Profile();
-            var screwSurface = profile.CreateMaleSurface(profileSettings);
-            var cuttingPlanes = profile.CuttingPlanes(profileSettings);
+            //var screwType = Dialogs.ShowListBox("Screw Type", "Select type", new[] { "Male", "Female" });
+            //var chamfer = (Chamfer)Dialogs.ShowListBox("Screw Type", "Chamfer", new[] { Chamfer.None, Chamfer.Left, Chamfer.Right, Chamfer.Both});
 
-            var surfaces = new List<Brep>();
-            surfaces.AddRange(screwSurface);
-            surfaces.AddRange(cuttingPlanes);
-            var breps = Brep.CreateSolid(surfaces, tolerance);
+            //if (result == Result.Failure)
+            //{
+            //    RhinoApp.WriteLine("incorrect parameters");
+            //    return result;
+            //}
 
-            doc.Objects.AddBrep(breps[0]);
-            doc.Views.Redraw();
             return Result.Success;
         }
 

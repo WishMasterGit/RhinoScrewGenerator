@@ -5,19 +5,20 @@ using Rhino.Input.Custom;
 using LanguageExt;
 namespace ScrewThread
 {
-    using CommandResult = Either<string, double>;
+    using CommandResult = Either<string, object>;
 
     internal class InitCommandParametrs
     {
-        public static (double, double, double, Result) Init()
+        public static (Chamfer, double, double, double, Result) Init()
         {
-            var fail = (double.NaN, double.NaN, double.NaN, Result.Failure);
+            var fail = (Chamfer.None, double.NaN, double.NaN, double.NaN, Result.Failure);
 
-            var result = GetDiameter()
+            var result = GetChamfer()
+                .Bind(chamfer => GetDiameter()
                 .Bind(diameter => GetPitch()
-                .Bind(pitch => GetLength(pitch)
-                .Map(length => (diameter, pitch, length))))
-                .Map((val) => (val.diameter, val.pitch, val.length, Result.Success))
+                .Bind(pitch => GetLength((double)pitch)
+                .Map(length => (chamfer,diameter, pitch, length)))))
+                .Map((val) => ((Chamfer)val.chamfer,(double)val.diameter, (double)val.pitch, (double)val.length, Result.Success))
                 .IfLeft(
                     err =>
                     {
@@ -28,6 +29,24 @@ namespace ScrewThread
             return result;
         }
 
+        private static CommandResult GetChamfer()
+        {
+            var chamfer = new GetOption();
+            chamfer.SetCommandPrompt("Select chamfer type");
+            chamfer.AddOptionEnumList("Chamfer", Chamfer.None, new Chamfer[] { Chamfer.None, Chamfer.Left, Chamfer.Right,  Chamfer.Both});
+            var d = new OptionDouble(64);
+            chamfer.SetDefaultString("None");
+            var get = chamfer.Get();
+            if(get == GetResult.Cancel)
+            {
+                return "Command cancelled.";
+            }
+            if (chamfer.GotDefault())
+            {
+                return Chamfer.None;
+            }
+            return chamfer.GetSelectedEnumValue<Chamfer>();
+        }
         private static CommandResult GetDiameter()
         {
             var getDiameter = new GetNumber();

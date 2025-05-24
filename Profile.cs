@@ -8,44 +8,6 @@ using System.Security.AccessControl;
 
 namespace ScrewThread
 {
-    internal readonly struct ProfileSettings
-    {
-        public ProfileSettings(double pitch, double diameter, double length, double tolerance)
-        {
-            Pitch = pitch;
-            Diameter = diameter;
-            Length = length;
-            Tolerance = tolerance;
-        }
-
-        public double Pitch { get; }
-        public double Diameter { get; }
-        public double Length { get; }
-        public double Tolerance { get; }
-        public double ThreadAngle => 30;
-        public double TurnCount => Length / Pitch;
-        public double Radius => Diameter / 2;
-        public double Height => Pitch / (Math.Tan(ToRadians(ThreadAngle)) * 2);
-        private double F1 => Diameter / 2 - Height * 5 / 8;
-        private double F2 => F1 - Pitch * Pitch / (16 * Height);
-        private double F3 => Diameter / 2 + Pitch * Pitch / (32 * Height);
-
-        public Point3d P1 => new Point3d(0, 0, F1);
-        public Point3d P1e => new Point3d(Pitch / 8, 0, F2);
-        public Vector3d P1h => new Vector3d(Pitch / 8, 0, -Height / 4);
-        public Point3d P2 => new Point3d(Pitch / 4, 0, F2);
-        public Point3d P3 => new Point3d(9 * Pitch / 16, 0, Diameter / 2);
-        public Point3d P3e => new Point3d(5 * Pitch / 8, 0, F3);
-        public Point3d P3h => new Point3d(5 * Pitch / 8, 0, Height / 8);
-        public Point3d P4 => new Point3d(11 * Pitch / 16, 0, Diameter / 2);
-        public Point3d P5 => new Point3d(Pitch, 0, F1);
-
-        private double ToRadians(double angle)
-        {
-            return (Math.PI * angle / 180);
-        }
-
-    }
     /// <summary>
     /// This class represents a screw thread profile.
     /// https://en.wikipedia.org/wiki/ISO_metric_screw_thread
@@ -94,7 +56,7 @@ namespace ScrewThread
 
         }
 
-        public Brep[] CreateMaleSurface(ProfileSettings data)
+        public Brep CreateMaleSurface(ProfileSettings data)
         {
             var maleProfile = CreateProfileCurve(data);
             var helix = HelixCurve(data);
@@ -102,9 +64,21 @@ namespace ScrewThread
             var threadsSurface = NurbsSurface.CreateRailRevolvedSurface(maleProfile, helix, revolvingAxis, false);
             Brep brep = threadsSurface.ToBrep();
             brep.Faces.SplitKinkyFaces();
-            return Tools.ExplodeAndMerge(brep, data.Tolerance);
+            var screw = Tools.ExplodeAndMerge(brep, data.Tolerance);
+            var cuttingPlanes = CuttingPlanes(data);
+            var surfaces = new List<Brep>();
+            surfaces.AddRange(screw);
+            surfaces.AddRange(cuttingPlanes);
+            var breps = Brep.CreateSolid(surfaces, data.Tolerance);
+            var result = breps[0];
+            result.Translate(Vector3d.XAxis * -data.Pitch);
+            if(data.ChamferOption != Chamfer.None)
+            {
+                result = ChamferProfile(result, data);
+            }
+            return result;
         }
-        public List<Brep> CuttingPlanes(ProfileSettings data)
+        private List<Brep> CuttingPlanes(ProfileSettings data)
         {
             var cuttingCircle = CuttingCircle(data.Pitch, data);
             var cuttingCircle2 = CuttingCircle(data.Height * (data.TurnCount - 1), data);
@@ -116,13 +90,31 @@ namespace ScrewThread
             return Brep.CreatePlanarBreps((new Circle(new Plane(new Point3d(0, 0, 0), -Vector3d.XAxis), new Point3d(translation, 0, 0), data.Diameter)).ToNurbsCurve(), data.Tolerance)[0];
         }
 
+        public Brep ChamferProfile(Brep screwProfile, ProfileSettings data)
+        {
+            var rot = Vector3d.XAxis;
+            rot.Transform(Transform.Rotation(data.ChamferAngle, Vector3d.ZAxis, Point3d.Origin));
+            double length = data.Pitch * (data.TurnCount);
+            var line = new Line(data.Pc1, rot, length);
+            var line2 = new Line(data.Pc1, rot, length);
+            line2.Transform(Transform.Mirror(Plane.WorldYZ));
+            var polyline = new Polyline(new List<Point3d> { data.Pc1, line.PointAtLength(length), line2.PointAtLength(length), data.Pc1 });
+            var chamferCutter = RevSurface.Create(polyline, new Line(Point3d.Origin, Vector3d.XAxis * length), 0, 2 * Math.PI).ToBrep();
+            var startChamfer = Brep.CreateBooleanIntersection(chamferCutter, screwProfile, data.Tolerance);
+            if(data.ChamferOption == Chamfer.Left) return startChamfer[0];
+            chamferCutter.Translate(Vector3d.XAxis * (data.Height*(data.TurnCount-1)-data.Pitch));
+            if(data.ChamferOption == Chamfer.Right) return Brep.CreateBooleanIntersection(screwProfile, chamferCutter, data.Tolerance)[0];
+            var endChamfer = Brep.CreateBooleanIntersection(startChamfer[0], chamferCutter, data.Tolerance);
+            return endChamfer[0];
+        }
+
         public double DiameterMinor(double diameterMajor, ProfileSettings data)
         {
             var diameterMinor = diameterMajor - 2 * (5 / 8) * data.Height;
             return diameterMinor;
         }
 
-        public double DiameterPitch(double diameterMajor,ProfileSettings data)
+        public double DiameterPitch(double diameterMajor, ProfileSettings data)
         {
             var diameterPitch = diameterMajor - 2 * (3 / 8) * data.Height;
             return diameterPitch;
