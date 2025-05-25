@@ -1,0 +1,10 @@
+---
+name: ScrewThread
+version: 0.1.1 
+authors:
+- WishMaster 
+description: >
+  This is a Grasshopper component for generating screw threads in Rhino. 
+  It allows users to create various types of screw threads with customizable parameters. 
+url: "https://github.com/WishMasterGit/RhinoScrewGenerator"
+icon: logo.png

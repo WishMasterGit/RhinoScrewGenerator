@@ -15,7 +15,7 @@
   
   <PropertyGroup>
     <!-- Specifies information for Assembly and Yak -->
-    <Version>1.0</Version>
+    <Version>0.1.1</Version>
     <Title>ScrewThread</Title>
     <Company>ScrewThread Authors</Company>
     <Description>Description of ScrewThread</Description>
@@ -26,7 +26,15 @@
     <PackageReference Include="RhinoCommon" Version="8.0.23304.9001" ExcludeAssets="runtime" />
   </ItemGroup>
   
+  <ItemGroup>
+    <None Update="manifest.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
   <Target Name="BuildYakPackage" AfterTargets="DispatchToInnerBuilds">
+    <Copy SourceFiles="$(ProjectDir)manifest.yml" DestinationFolder="$(OutputPath)" />
+    <Copy SourceFiles="$(ProjectDir)EmbeddedResources\logo.png" DestinationFolder="$(OutputPath)" />
     <PropertyGroup>
       <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(windows)) and Exists('C:\Program Files\Rhino 8\System\Yak.exe')">C:\Program Files\Rhino 8\System\Yak.exe</YakExecutable>
       <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(macos)) and Exists('/Applications/Rhino 8.app/Contents/Resources/bin/yak')">/Applications/Rhino 8.app/Contents/Resources/bin/yak</YakExecutable>
@@ -35,7 +43,7 @@
     </PropertyGroup>
     
     <Warning Text="Could not find Yak executable" Condition="$(YakExecutable) == ''" />
-
+<!--
     <ItemGroup>
       <YakPackagesToDelete Include="$(OutputPath)\*.yak;$(OutputPath)\**\manifest.yml" />
     </ItemGroup>
@@ -43,6 +51,7 @@
     <Delete Files="@(YakPackagesToDelete)" />
 
     <Exec Command="&quot;$(YakExecutable)&quot; spec" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
+    -->
     <Exec Command="&quot;$(YakExecutable)&quot; build" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
 
   </Target>

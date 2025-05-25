@@ -1,10 +1,6 @@
-﻿using LanguageExt;
-using LanguageExt.Pretty;
-using Rhino.Geometry;
+﻿using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
 
 namespace ScrewThread
 {
