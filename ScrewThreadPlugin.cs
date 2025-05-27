@@ -2,6 +2,7 @@
 using Rhino;
 using Rhino.PlugIns;
 using Rhino.UI;
+using Eto.Forms;
 
 namespace ScrewThread
 {
@@ -26,5 +27,13 @@ namespace ScrewThread
         // You can override methods here to change the plug-in behavior on
         // loading and shut down, add options pages to the Rhino _Option command
         // and maintain plug-in wide options in a document.
+
+        protected override LoadReturnCode OnLoad(ref string errorMessage)
+        {
+
+            //Register the UserControl "Panels"
+
+            return LoadReturnCode.Success;
+        }
     }
 }
