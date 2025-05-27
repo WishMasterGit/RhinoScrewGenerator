@@ -15,6 +15,7 @@ namespace ScrewThread
             // Rhino only creates one instance of each command class defined in a
             // plug-in, so it is safe to store a refence in a static property.
             Instance = this;
+
         }
 
         ///<summary>The only instance of this command.</summary>
