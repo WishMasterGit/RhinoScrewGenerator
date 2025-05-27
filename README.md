@@ -1,3 +1,4 @@
 # ScrewThread
 
-https://github.com/PachydermAcoustic/PachydermAcoustic_Rhinoceros/blob/master/Pachyderm_AcousticPlugIn.cs
+
+Plugin for generating screw threads in Rhino. It allows users to create various types of screw threads with customizable parameters. 
