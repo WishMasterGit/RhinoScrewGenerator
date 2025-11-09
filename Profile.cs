@@ -87,7 +87,7 @@ namespace ScrewThread
                     return profile;
                 case ProfileType.Female:
                     var arcF = ArcFemale(stepVector, data);
-                    var curveF1= PolylineFemale(stepVector, data);
+                    var curveF1 = PolylineFemale(stepVector, data);
                     var curveF2 = PolylineFemaleB(stepVector, data);
                     profile.Append(curveF1);
                     profile.Append(arcF);
@@ -151,16 +151,7 @@ namespace ScrewThread
             return endChamfer[0];
         }
 
-        public double DiameterMinor(double diameterMajor, ProfileSettings data)
-        {
-            var diameterMinor = diameterMajor - 2 * (5 / 8) * data.Height;
-            return diameterMinor;
-        }
-
-        public double DiameterPitch(double diameterMajor, ProfileSettings data)
-        {
-            var diameterPitch = diameterMajor - 2 * (3 / 8) * data.Height;
-            return diameterPitch;
-        }
+        public double DiameterMinor(double diameterMajor, ProfileSettings data) => diameterMajor - 2 * (5 / 8) * data.Height;
+        public double DiameterPitch(double diameterMajor, ProfileSettings data) => diameterMajor - 2 * (3 / 8) * data.Height;
     }
 }

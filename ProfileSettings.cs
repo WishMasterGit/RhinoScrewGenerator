@@ -1,5 +1,6 @@
 ﻿using Rhino.Geometry;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace ScrewThread
 {
