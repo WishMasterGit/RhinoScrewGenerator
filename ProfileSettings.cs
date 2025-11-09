@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace ScrewThread
 {
-    internal enum Chamfer
+    public enum Chamfer
     {
         None,
         Left,
@@ -12,7 +12,7 @@ namespace ScrewThread
         Both
     }
 
-    internal enum ProfileType
+    public enum ProfileType
     {
         Male,
         Female
@@ -21,7 +21,7 @@ namespace ScrewThread
     /// Represents the geometric and thread parameters for a screw thread profile.
     /// Provides calculated properties for key points and dimensions based on ISO metric thread standards.
     /// </summary>
-    internal readonly struct ProfileSettings
+    public readonly struct ProfileSettings
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileSettings"/> struct.

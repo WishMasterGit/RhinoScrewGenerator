@@ -8,7 +8,7 @@ namespace ScrewThread
     /// This class represents a screw thread profile.
     /// https://en.wikipedia.org/wiki/ISO_metric_screw_thread
     /// </summary>
-    internal class Profile
+    public class Profile
     {
 
         public ArcCurve ArcMale(ProfileSettings data)
