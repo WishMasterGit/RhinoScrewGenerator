@@ -119,6 +119,11 @@ namespace ScrewThread
             {
                 result = ChamferProfile(result, data);
             }
+
+            if (data.Cutter)
+            {
+                return CreateCutterBrep(result, data);
+            }
             return result;
         }
         private List<Brep> CuttingPlanes(ProfileSettings data)
@@ -150,7 +155,27 @@ namespace ScrewThread
             var endChamfer = Brep.CreateBooleanIntersection(startChamfer[0], chamferCutter, data.Tolerance);
             return endChamfer[0];
         }
+        
+        public Brep CreateCutterBrep(Brep cutterBrep, ProfileSettings cutterSettings) 
+        {
+            // Create a solid cylinder to subtract the thread from
+            var cylinder = new Cylinder(
+                new Circle(new Plane(Point3d.Origin, Vector3d.XAxis), cutterSettings.Diameter / 2 + cutterSettings.Height),
+                cutterSettings.Length
+            );
+            var cylinderBrep = cylinder.ToBrep(true, true);
 
+            // Subtract the thread profile from the cylinder to create the cutter
+            var cutterResult = Brep.CreateBooleanDifference(cylinderBrep, cutterBrep, cutterSettings.Tolerance);
+
+            if (cutterResult != null && cutterResult.Length > 0)
+            {
+                return cutterResult[0];
+            }
+
+            // If boolean operation fails, return the basic thread profile
+            return cutterBrep;
+        }
         public double DiameterMinor(double diameterMajor, ProfileSettings data) => diameterMajor - 2 * (5 / 8) * data.Height;
         public double DiameterPitch(double diameterMajor, ProfileSettings data) => diameterMajor - 2 * (3 / 8) * data.Height;
     }

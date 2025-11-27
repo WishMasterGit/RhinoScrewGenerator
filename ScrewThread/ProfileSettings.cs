@@ -30,7 +30,7 @@ namespace ScrewThread
         /// <param name="diameter">The major diameter of the thread.</param>
         /// <param name="length">The total length of the thread.</param>
         /// <param name="tolerance">The modeling tolerance.</param>
-        public ProfileSettings(double pitch, double diameter, double length, double tolerance, Chamfer chamferOption, ProfileType profileType)
+        public ProfileSettings(double pitch, double diameter, double length, double tolerance, Chamfer chamferOption, ProfileType profileType, bool cutter)
         {
             Pitch = pitch;
             Diameter = diameter;
@@ -38,9 +38,18 @@ namespace ScrewThread
             Tolerance = tolerance;
             ChamferOption = chamferOption;
             ProfileType = profileType;
+            Cutter = cutter;
         }
 
+        /// <summary>
+        /// Gets the type of the profile.
+        /// </summary>
         public ProfileType ProfileType { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the cutter functionality is enabled.
+        /// </summary>
+        public bool Cutter { get; }
 
         /// <summary>
         /// Gets the thread pitch (distance between threads).

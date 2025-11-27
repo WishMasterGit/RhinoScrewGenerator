@@ -20,15 +20,14 @@
   </PropertyGroup> 
   <PropertyGroup>
     <!-- Specifies information for Assembly and Yak -->
-    <Version>0.1.1</Version>
+    <Version>0.4.4</Version>
     <Title>ScrewThread</Title>
     <Company>ScrewThread Authors</Company>
     <Description>Description of ScrewThread</Description>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="RhinoCommon" Version="8.24.25281.15001" ExcludeAssets="runtime" />
-    <PackageReference Include="RhinoWindows" Version="8.24.25281.15001" />
+    <PackageReference Include="RhinoCommon" Version="8.25.25328.11001" ExcludeAssets="runtime" />
   </ItemGroup>
   
   <ItemGroup>
@@ -56,9 +55,9 @@
     <Delete Files="@(YakPackagesToDelete)" />
 
     <Exec Command="&quot;$(YakExecutable)&quot; spec" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
-    -->
     <Exec Command="&quot;$(YakExecutable)&quot; build" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
 
+    -->
   </Target>
 
 </Project>

@@ -22,6 +22,7 @@ namespace ScrewThread
             gp.AddOptionDouble("Pitch", ref options.Pitch);
             gp.AddOptionDouble("Diameter", ref options.Diameter);
             gp.AddOptionDouble("Length", ref options.Length);
+            gp.AddOptionToggle("Cutter", ref options.Cutter);
 
             Point3d basePoint = Point3d.Origin;
 
@@ -76,7 +77,7 @@ namespace ScrewThread
         public static void CreateProfile(RhinoDoc doc, Options options, Point3d origin)
         {
             var tolerance = doc.ModelAbsoluteTolerance;
-            var profileSettings = new ProfileSettings(options.Pitch.CurrentValue, options.Diameter.CurrentValue, options.Length.CurrentValue, tolerance, options.ChamferOption, options.ProfileType);
+            var profileSettings = new ProfileSettings(options.Pitch.CurrentValue, options.Diameter.CurrentValue, options.Length.CurrentValue, tolerance, options.ChamferOption, options.ProfileType, options.Cutter.CurrentValue);
             var profile = new Profile();
             var screwSurface = profile.CreateProfileBrep(profileSettings);
                 var xform = Transform.Translation(origin.X, origin.Y, origin.Z);

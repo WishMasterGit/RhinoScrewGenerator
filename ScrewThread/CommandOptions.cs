@@ -10,6 +10,7 @@ namespace ScrewThread
         public OptionDouble Length;
         public Chamfer ChamferOption;
         public ProfileType ProfileType;
+        public OptionToggle Cutter;
 
         const string section = "ScrewThread";
         const string lastSave = "LastUsedOptions";
@@ -24,12 +25,14 @@ namespace ScrewThread
             double length = lastOptions?.GetDouble("Length", 100.0) ?? 100.0;
             Chamfer chamfer = Enum.TryParse(lastOptions?.GetString("Chamfer", Chamfer.None.ToString()), out Chamfer c) ? c : Chamfer.None;
             ProfileType profileType = Enum.TryParse(lastOptions?.GetString("ProfileType", ProfileType.Female.ToString()), out ProfileType p) ? p : ProfileType.Female;
+            OptionToggle cutter = new OptionToggle(lastOptions?.GetBool("Cutter", false) ?? false, "No", "Yes");
 
             Pitch = new OptionDouble(pitch);
             Diameter = new OptionDouble(diameter);
             Length = new OptionDouble(length);
             ChamferOption = chamfer;
             ProfileType = profileType;
+            Cutter = cutter;
         }
 
         public void Save()
@@ -42,6 +45,7 @@ namespace ScrewThread
             lastOptions.SetDouble("Length", Length.CurrentValue);
             lastOptions.SetString("Chamfer", ChamferOption.ToString());
             lastOptions.SetString("ProfileType", ProfileType.ToString());
+            lastOptions.SetBool("Cutter", Cutter.CurrentValue);
         }
 
         public void UpdateEnums(Chamfer chamfer, ProfileType profileType)

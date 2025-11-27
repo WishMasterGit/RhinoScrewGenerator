@@ -59,7 +59,7 @@ namespace ScrewThread
             var chamfer = (Chamfer)chamferInt;
             var profileType = (ProfileType)profileTypeInt;
 
-            var settings = new ProfileSettings(pitch, diameter, length, tolerance, chamfer, profileType);
+            var settings = new ProfileSettings(pitch, diameter, length, tolerance, chamfer, profileType, false);
             var profile = new Profile();
             Brep brep = null;
             try
